@@ -136,6 +136,36 @@ app.post('/login', (req, res) => {
   });
 });
 
+// Endpoint filtrado para el panel de admin
+app.get('/quejas-filtradas', (req, res) => {
+  const { area, fecha } = req.query;
+
+  let query = "SELECT * FROM quejas WHERE 1=1";
+  let params = [];
+
+  if (area) {
+    query += " AND area LIKE ?";
+    params.push(`%${area}%`);
+  }
+
+  if (fecha) {
+    query += " AND DATE(fechaQueja) = ?";
+    params.push(fecha);
+  }
+
+  query += " ORDER BY fechaQueja DESC";
+
+  db.query(query, params, (err, results) => {
+    if (err) {
+      console.error('❌ Error al obtener quejas filtradas:', err);
+      return res.status(500).json({ error: 'Error al obtener quejas filtradas' });
+    }
+
+    res.json(results);
+  });
+});
+
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en http://localhost:${PORT}`);
 });
+
