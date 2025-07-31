@@ -141,7 +141,7 @@ app.get('/quejas-filtradas', (req, res) => {
   let query = "SELECT * FROM quejas WHERE 1=1";
   let params = [];
 
-  if (area) {
+  if (comentario) {
     query += " AND comentario LIKE ?";
     params.push(`%${comentario}%`);
   }
