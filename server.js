@@ -13,37 +13,38 @@ app.use(cors());
 app.use(bodyParser.json({ limit: '10mb' }));
 app.use(bodyParser.urlencoded({ extended: true }));
 
-//conexion a la db
-const db = mysql.createConnection({
+// ✅ Pool de conexiones
+const db = mysql.createPool({
+  connectionLimit: 10, // opcional: cantidad máxima de conexiones
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
-  reconnect: true,
+  database: process.env.DB_NAME
 });
 
-db.connect((err) => {
-  if (err) throw err;
-  console.log('Conexion a la db estblecida');
+// Prueba inicial para ver si se conecta bien
+db.getConnection((err, connection) => {
+  if (err) {
+    console.error('❌ Error al conectar al pool:', err);
+  } else {
+    console.log('✅ Conexión a la DB establecida (usando pool)');
+    connection.release();
+  }
 });
-
-
-
-
 
 //------ Funcion de envio mensual automatico
 const enviarResumenMensual = () => {
   const query = `
     SELECT
-  COUNT(*) AS total,
-  SUM(CASE WHEN LOWER(comentario) LIKE '%queja%' THEN 1 ELSE 0 END) AS total_quejas,
-  SUM(CASE WHEN LOWER(comentario) LIKE '%reclamo%' THEN 1 ELSE 0 END) AS total_reclamos,
-  SUM(CASE WHEN LOWER(comentario) LIKE '%sugerencia%' THEN 1 ELSE 0 END) AS total_sugerencias,
-  SUM(CASE WHEN LOWER(comentario) LIKE '%felicitacion%' OR LOWER(comentario) LIKE '%felicitación%' THEN 1 ELSE 0 END) AS total_felicitaciones
-  FROM quejas
-  WHERE
-  fechaQueja >= DATE_SUB(DATE_FORMAT(CURDATE(), '%Y-%m-01'), INTERVAL 1 MONTH)
-  AND fechaQueja < DATE_FORMAT(CURDATE(), '%Y-%m-01');`;
+      COUNT(*) AS total,
+      SUM(CASE WHEN LOWER(comentario) LIKE '%queja%' THEN 1 ELSE 0 END) AS total_quejas,
+      SUM(CASE WHEN LOWER(comentario) LIKE '%reclamo%' THEN 1 ELSE 0 END) AS total_reclamos,
+      SUM(CASE WHEN LOWER(comentario) LIKE '%sugerencia%' THEN 1 ELSE 0 END) AS total_sugerencias,
+      SUM(CASE WHEN LOWER(comentario) LIKE '%felicitacion%' OR LOWER(comentario) LIKE '%felicitación%' THEN 1 ELSE 0 END) AS total_felicitaciones
+    FROM quejas
+    WHERE
+      fechaQueja >= DATE_SUB(DATE_FORMAT(CURDATE(), '%Y-%m-01'), INTERVAL 1 MONTH)
+      AND fechaQueja < DATE_FORMAT(CURDATE(), '%Y-%m-01');`;
 
   db.query(query, async (err, result) => {
     if (err) {
@@ -56,8 +57,7 @@ const enviarResumenMensual = () => {
     const total_felicitaciones = result[0].total_felicitaciones;
     const total_sugerencias = result[0].total_sugerencias;
     const total_reclamos = result[0].total_reclamos;
-    
-    console.log(total)
+
     try {
       const response = await axios.post('https://api.emailjs.com/api/v1.0/email/send', {
         service_id: process.env.EMAILJS_SERVICE_ID,
@@ -75,20 +75,18 @@ const enviarResumenMensual = () => {
         }
       });
 
-      console.log('Correo enviado', response.data);
+      console.log('📧 Correo enviado', response.data);
     } catch (error) {
-      console.error('error al enviar correo', error.response?.data || error.message);
+      console.error('❌ Error al enviar correo', error.response?.data || error.message);
     }
   });
 };
 
 //---- node cron de correo automatico
-//  minuto/Hora/dia_mes/mes/dia_semana
 cron.schedule('42 9 25 6 *', () => {
-  console.log('ejecutando funcion de resumen mensual');
+  console.log('🕒 Ejecutando resumen mensual...');
   enviarResumenMensual();
 });
-
 
 //rutas 
 app.post('/quejas', (req, res) => {
@@ -111,14 +109,14 @@ app.post('/quejas', (req, res) => {
   });
 });
 
-
 app.get('/getquejas', (req, res) => {
   db.query('SELECT * FROM quejas ORDER BY fechaQueja DESC', (err, results) => {
     if (err) return res.status(500).json({ error: 'Error al obtener las quejas' });
     res.json(results);
   });
 });
-//------------------------------ del paneel del admin------------------------------------
+
+//------------------------------ del panel del admin------------------------------------
 app.post('/login', (req, res) => {
   const { email, password } = req.body;
 
@@ -137,7 +135,6 @@ app.post('/login', (req, res) => {
   });
 });
 
-// Endpoint filtrado para el panel de admin
 app.get('/quejas-filtradas', (req, res) => {
   const { area, fecha } = req.query;
 
@@ -167,6 +164,6 @@ app.get('/quejas-filtradas', (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`Servidor corriendo en http://localhost:${PORT}`);
+  console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
 });
 
