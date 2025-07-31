@@ -136,14 +136,14 @@ app.post('/login', (req, res) => {
 });
 
 app.get('/quejas-filtradas', (req, res) => {
-  const { area, fecha } = req.query;
+  const { comentario, fecha } = req.query;
 
   let query = "SELECT * FROM quejas WHERE 1=1";
   let params = [];
 
   if (area) {
     query += " AND area LIKE ?";
-    params.push(`%${area}%`);
+    params.push(`%${comentario}%`);
   }
 
   if (fecha) {
