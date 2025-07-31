@@ -142,7 +142,7 @@ app.get('/quejas-filtradas', (req, res) => {
   let params = [];
 
   if (area) {
-    query += " AND area LIKE ?";
+    query += " AND comentario LIKE ?";
     params.push(`%${comentario}%`);
   }
 
