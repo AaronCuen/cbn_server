@@ -14,7 +14,7 @@ RUN npm install
 COPY . .
 
 # Expone el puerto (cámbialo si tu servidor usa otro)
-EXPOSE 3000
+EXPOSE 4000
 
 # Comando para ejecutar el servidor
 CMD ["node", "server.js"]
