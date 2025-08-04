@@ -1,7 +1,8 @@
+
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
-const mysql = require('mysql2'); Po
+const mysql = require('mysql2');
 const axios = require('axios');
 const cron = require('node-cron');
 require('dotenv').config();
@@ -136,14 +137,14 @@ app.post('/login', (req, res) => {
 });
 
 app.get('/quejas-filtradas', (req, res) => {
-  const { comentario, fecha } = req.query;
+  const { area, fecha } = req.query;
 
   let query = "SELECT * FROM quejas WHERE 1=1";
   let params = [];
 
-  if (comentario) {
-    query += " AND comentario LIKE ?";
-    params.push(`%${comentario}%`);
+  if (area) {
+    query += " AND area LIKE ?";
+    params.push(`%${area}%`);
   }
 
   if (fecha) {
@@ -166,4 +167,3 @@ app.get('/quejas-filtradas', (req, res) => {
 app.listen(PORT, () => {
   console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
 });
-
