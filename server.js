@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
-const mysql = require('mysql2');
+const mysql = require('mysql2'); Po
 const axios = require('axios');
 const cron = require('node-cron');
 require('dotenv').config();
@@ -65,7 +65,7 @@ const enviarResumenMensual = () => {
         user_id: process.env.EMAILJS_PUBLIC_KEY,
         accessToken: process.env.EMAILJS_PRIVATE_KEY,
         template_params: {
-          to_email: 'mercado.aviles@yahoo.com.mx',
+          to_email: 'aaroncuen020714@gmail.com',
           message: `Resumen del sistema CBN Buzón:\n
           Durante el mes pasado se registraron un total de ${total} comentarios.\n
           - Quejas: ${total_quejas}\n
