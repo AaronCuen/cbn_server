@@ -1,4 +1,3 @@
-
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
@@ -84,7 +83,7 @@ const enviarResumenMensual = () => {
 };
 
 //---- node cron de correo automatico
-cron.schedule('42 9 25 6 *', () => {
+cron.schedule('1 17 * * *', () => {
   console.log('🕒 Ejecutando resumen mensual...');
   enviarResumenMensual();
 });
@@ -136,11 +135,17 @@ app.post('/login', (req, res) => {
   });
 });
 
+// ✅ RUTA MODIFICADA para incluir el filtro por comentario
 app.get('/quejas-filtradas', (req, res) => {
-  const { area, fecha } = req.query;
+  const { comentario, area, fecha } = req.query;
 
   let query = "SELECT * FROM quejas WHERE 1=1";
   let params = [];
+
+  if (comentario) {
+    query += " AND LOWER(comentario) = LOWER(?)";
+    params.push(comentario);
+  }
 
   if (area) {
     query += " AND area LIKE ?";
@@ -167,3 +172,4 @@ app.get('/quejas-filtradas', (req, res) => {
 app.listen(PORT, () => {
   console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
 });
+
